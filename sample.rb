@@ -26,28 +26,28 @@ module Enumerable
 end
 
 module Index
+  def self.extended(enum)
+    h = enum.instance_variable_set(:@index, Hash.new)
+    enum.each { |each| h[each.id] = each }
+  end
+
   def [](id)
-    case id
-    when String
-      @index ||= each_with_object({}) { |each, h| h[each.id] = each }
-      @index.fetch(id) { raise KeyError, "Index not found: \"#{id}\"" }
-    else
-      super
-    end
+    return super unless String === id
+    @index.fetch(id) { raise KeyError, "Index not found: \"#{id}\"" }
   end
 end
 
-class Conversation < Hash
-  attr_reader :messages
-
+module Conversation
   def self.new_index(data)
-    data.map { |each| Conversation.new(each) }.extend Index
+    data.map { |each| each.extend Conversation }.extend Index
   end
 
-  def initialize(hash)
-    update(hash)
-    @messages = self['mapping'].values.map { |each| Message.new(each) }
-    raise unless @messages.shift.message.nil?
+  def messages
+    unless @messages
+      @messages = self['mapping'].values.map { |each| each.extend Message }.extend Index
+      @messages.first.fix_root_message
+    end
+    @messages
   end
 
   def text_only?
@@ -57,15 +57,36 @@ class Conversation < Hash
   def conversation_url
     "https://chatgpt.com/c/#{self.id}"
   end
-end
 
-class Message < Hash
-  def initialize(hash)
-    update(hash)
+  def current_node
+    messages[self['current_node']]
   end
 
-  def root?
-    self['parent'].nil?
+  def all_nodes
+    nodes = [node = current_node]
+    nodes << (node = messages[node.parent]) while node.parent
+    nodes.reverse
+  end
+
+  def hidden_nodes
+    self.messages - self.all_nodes
+  end
+
+  def summary
+    [self.id, self.title]
+  end
+end
+
+module Message
+
+  ROOT_MESSAGE = {
+    'content' => { 'content_type' => "text", 'parts' => [] },
+    'author' => { 'role' => 'system' },
+  }.freeze
+
+  def fix_root_message
+    raise unless self['parent'].nil? && self['message'].nil?
+    self['message'] = ROOT_MESSAGE
   end
 
   def content_type
@@ -104,8 +125,11 @@ samples.each_with_index do |each, n|
   puts "#{n.succ}) #{each.title}"
 end
 print "Pick 1-5: "
-num = (Integer STDIN.gets).pred
+num = (Integer STDIN.gets).pred rescue rand(5)
 puts samples[num].conversation_url
+
+# $text.map { |ea| [ea.id, ea.title, ea.all_nodes.sum { |m| m.content.scan(/\S+/).size }] }.sort_by(&:last).reverse
+
 
 if ARGV.include?('-i')
   require 'pry'
