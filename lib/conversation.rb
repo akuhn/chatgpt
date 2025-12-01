@@ -42,13 +42,15 @@ module Index
 end
 
 module Conversation
+
   def self.new_index(data)
     data.map { |each| each.extend Conversation }.extend Index
   end
 
   def messages
     unless @messages
-      @messages = self['mapping'].values.map { |each| each.extend Message }.extend Index
+      @messages = self['mapping'].values.each { |each| each.extend Message }.extend Index
+      @messages.each { |each| each['conversation'] = self.id }
       @messages.first.fix_root_message
     end
     @messages
@@ -115,10 +117,6 @@ module Message
       parts = self.dig('message', 'content', 'parts')
       raise if parts.length > 1
       parts.first or ""
-    when "reasoning_recap"
-      self.dig('message', 'content', 'content')
-    when "code", "execution_output", "system_error"
-      self.dig('message', 'content', 'text')
     when "multimodal_text"
       parts = self.dig('message', 'content', 'parts')
       content = String === parts.last ? parts.pop : nil
@@ -126,11 +124,11 @@ module Message
       content or ""
     when "thoughts"
       thoughts = self.dig('message', 'content', 'thoughts')
-      %(what the fuck is a thoughts)
-    when "tether_browsing_display"
-      %(what the fuck is a tether_browsing_display)
-    when "tether_quote"
-      %(what the fuck is a tether_quote)
+      %(what the heck is thoughts)
+    when "reasoning_recap"
+      self.dig('message', 'content', 'content')
+    when "code", "execution_output", "system_error"
+      self.dig('message', 'content', 'text')
     else
       raise
     end

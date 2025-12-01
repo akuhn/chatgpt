@@ -25,3 +25,5 @@ $messages.each do |m|
   raise unless String === m.content
 end
 
+binding.pry if ARGV.include? %(-i)
+
