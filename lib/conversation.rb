@@ -56,8 +56,16 @@ module Conversation
     @messages
   end
 
-  def text_only?
+  def all_text?
     messages.all?(&:text?)
+  end
+
+  def any_dalle?
+    messages.any?(&:dalle?)
+  end
+
+  def match?(pattern)
+    messages.any? { |m| m.content.match? pattern }
   end
 
   def conversation_url
@@ -109,6 +117,11 @@ module Message
 
   def text?
     self.content_type == "text"
+  end
+
+  def dalle?
+    return false unless content_type == 'multimodal_text'
+    !!self.dig('message', 'content', 'parts', 0, 'metadata', 'dalle')
   end
 
   def content

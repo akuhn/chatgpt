@@ -3,8 +3,9 @@ require 'binding_of_caller'
 
 json = File.read 'conversations.json'
 
-module Kernel
+class Object
   def raise (*args)
+    Object.remove_method :raise
     (binding.of_caller 1).pry
   end
 end

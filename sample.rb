@@ -3,10 +3,9 @@ require './lib/conversation'
 json = File.read 'conversations.json'
 
 $data = Conversation.new_index(JSON.parse json)
-$text = $data.select(&:text_only?).extend Index
 
 # Choose one of five
-samples = $data.select(&:text_only?).shuffle.take(5)
+samples = $data.reject(&:any_dalle?).shuffle.take(5)
 samples.each_with_index do |each, n|
   puts "#{n.succ}) #{each.title}"
 end
