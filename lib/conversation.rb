@@ -49,9 +49,12 @@ module Conversation
 
   def messages
     unless @messages
-      @messages = self['mapping'].values.each { |each| each.extend Message }.extend Index
-      @messages.each { |each| each['conversation'] = self.id }
-      @messages.first.fix_root_message
+      @messages = self['mapping'].values.extend Index
+      @messages.each { |each|
+        each.extend Message
+        each.fix_root_message unless each['message']
+        each['conversation'] = self.id
+      }
     end
     @messages
   end
@@ -121,7 +124,8 @@ module Message
 
   def dalle?
     return false unless content_type == 'multimodal_text'
-    !!self.dig('message', 'content', 'parts', 0, 'metadata', 'dalle')
+    parts = self.dig('message', 'content', 'parts')
+    parts.any? { |ea| Hash === ea && ea.dig('metadata', 'dalle') }
   end
 
   def content
@@ -132,16 +136,12 @@ module Message
       parts.first or ""
     when "multimodal_text"
       parts = self.dig('message', 'content', 'parts')
-      content = String === parts.last ? parts.pop : nil
-      raise unless parts.all? { |each| each['content_type'] == 'image_asset_pointer' }
-      content or ""
-    when "thoughts"
-      thoughts = self.dig('message', 'content', 'thoughts')
-      %(what the heck is thoughts)
-    when "reasoning_recap"
-      self.dig('message', 'content', 'content')
+      # FIXME check what all the other parts are about, image, video etc
+      parts.grep(String).join(' ')
     when "code", "execution_output", "system_error"
       self.dig('message', 'content', 'text')
+    when "reasoning_recap", "tether_browsing_display", "tether_quote", "thoughts"
+      "(unsupported content type)"
     else
       raise
     end
