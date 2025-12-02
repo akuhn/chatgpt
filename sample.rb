@@ -1,6 +1,6 @@
 require './lib/conversation'
 
-json = File.read 'conversations.json'
+json = File.read '../conversations.json'
 
 $data = Conversation.new_index(JSON.parse json)
 

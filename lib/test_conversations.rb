@@ -1,7 +1,7 @@
 require './lib/conversation'
 require 'binding_of_caller'
 
-json = File.read 'conversations.json'
+json = File.read '../conversations.json'
 
 class Object
   def raise (*args)
