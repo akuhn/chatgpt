@@ -24,6 +24,9 @@ $messages.each do |m|
   raise unless Message === m
   raise unless String === m.content_type
   raise unless String === m.content
+  # Some more smoke tests...
+  m.dalle?
+  m.text?
 end
 
 binding.pry if ARGV.include? %(-i)
