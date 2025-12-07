@@ -67,6 +67,10 @@ module Conversation
     messages.any?(&:dalle?)
   end
 
+  def any_dalle_v2?
+    messages.any?(&:dalle_v2?)
+  end
+
   def match?(pattern)
     messages.any? { |m| m.content.match? pattern }
   end
@@ -123,9 +127,9 @@ module Message
   end
 
   def dalle?
-    return false unless content_type == 'multimodal_text'
-    parts = self.dig('message', 'content', 'parts')
-    parts.any? { |ea| Hash === ea && ea.dig('metadata', 'dalle') }
+    content_type == 'multimodal_text' &&
+    author_name =~ /dalle|t2uay3k.sj1i4kz/ &&
+    author_role == 'tool'
   end
 
   def content
@@ -136,10 +140,10 @@ module Message
       parts.first or ""
     when "multimodal_text"
       parts = self.dig('message', 'content', 'parts')
-      # FIXME check what all the other parts are about, image, video etc
+      # FIXME check other parts are about, image, video etc
       parts.grep(String).join(' ')
     when "code", "execution_output", "system_error"
-      self.dig('message', 'content', 'text')
+      "(unsupported content type)"
     when "reasoning_recap", "tether_browsing_display", "tether_quote", "thoughts"
       "(unsupported content type)"
     else
