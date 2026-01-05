@@ -59,16 +59,16 @@ module Conversation
     @messages
   end
 
+  def msg_count
+    messages.length
+  end
+
   def all_text?
     messages.all?(&:text?)
   end
 
   def any_dalle?
     messages.any?(&:dalle?)
-  end
-
-  def any_dalle_v2?
-    messages.any?(&:dalle_v2?)
   end
 
   def match?(pattern)
