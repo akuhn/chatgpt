@@ -9,7 +9,14 @@ end
 
 class Hash
   def method_missing(sym, *args)
-    fetch(sym.to_s) { super }
+    fetch(sym) { fetch(sym.to_s) { super }}
+  end
+end
+
+class String
+  def to_proc
+    @to_proc_parts ||= self.split('.')
+    lambda { it.dig *@to_proc_parts }
   end
 end
 
@@ -44,7 +51,7 @@ end
 module Conversation
 
   def self.new_index(data)
-    data.map { |each| each.extend Conversation }.extend Index
+    data.map { it.extend Conversation }.extend Index
   end
 
   def messages
@@ -72,7 +79,7 @@ module Conversation
   end
 
   def match?(pattern)
-    messages.any? { |m| m.content.match? pattern }
+    messages.any? { it.content.match? pattern }
   end
 
   def conversation_url
