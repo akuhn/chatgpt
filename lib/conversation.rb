@@ -140,15 +140,18 @@ module Message
   end
 
   def content
+    @content ||=
     case content_type
     when "text"
       parts = self.dig('message', 'content', 'parts')
-      raise if parts.length > 1
+      if parts.length > 1
+        return "(#{$1})" if parts.first =~ /genui_run result of {"(\w+widget)"/
+        raise # FIXME potentially cover more multi-part cases here
+      end
       parts.first or ""
     when "multimodal_text"
       parts = self.dig('message', 'content', 'parts')
-      # FIXME check other parts are about, image, video etc
-      parts.grep(String).join(' ')
+      parts.map { String === it ? String : "(#{it.content_type})" }.join(' ')
     when "code", "execution_output", "system_error"
       "(unsupported content type)"
     when "reasoning_recap", "tether_browsing_display", "tether_quote", "thoughts"
