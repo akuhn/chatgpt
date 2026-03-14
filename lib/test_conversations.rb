@@ -29,5 +29,7 @@ $messages.each do |m|
   m.text?
 end
 
+
+
 binding.pry if ARGV.include? %(-i)
 
