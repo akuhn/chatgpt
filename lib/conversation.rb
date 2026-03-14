@@ -150,8 +150,8 @@ module Message
       end
       parts.first or ""
     when "multimodal_text"
-      parts = self.dig('message', 'content', 'parts')
-      parts.map { String === it ? String : "(#{it.content_type})" }.join(' ')
+      parts = self.dig('message', 'content', 'parts') || []
+      parts.map { |it| String === it ? it : "(#{it.content_type})" }.join(' ')
     when "code", "execution_output", "system_error"
       "(unsupported content type)"
     when "reasoning_recap", "tether_browsing_display", "tether_quote", "thoughts"
