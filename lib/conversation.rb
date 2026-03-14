@@ -60,7 +60,7 @@ module Conversation
       @messages.each { |each|
         each.extend Message
         each.fix_root_message unless each['message']
-        each['conversation'] = self.id
+        each['conversation_id'] = self.id
       }
     end
     @messages
@@ -108,8 +108,9 @@ end
 module Message
 
   ROOT_MESSAGE = {
-    'content' => { 'content_type' => "text", 'parts' => [] },
     'author' => { 'role' => 'system' },
+    'content' => { 'content_type' => "text", 'parts' => [] },
+    'create_time' => 1500000000,
   }.freeze
 
   def fix_root_message

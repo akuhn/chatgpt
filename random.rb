@@ -7,20 +7,21 @@ json = File.read '../conversations.json'
 $data = Conversation.new_index(JSON.parse json)
 
 Options.if_present :match do |word|
-  $data = $data.select { |ea| ea.match? word }
+  $data.select! { |ea| ea.match? word }
 end
 
 unless Options.include? :dalle
-  $data = $data.reject(&:any_dalle?)
+  $data.reject!(&:any_dalle?)
 end
 
 if Options.include? :uniform
   ea = $data[rand * $data.size]
 elsif Options.include? :messages
   messages = $data.flat_map(&:messages)
-  messages = messages.sort_by(&:create_time)
+  messages = messages.sort_by { it.message['create_time'] or 1500000000 }
   messages = messages.reverse if Options.include? :recent
-  ea = messages[rand * rand * messages.length]
+  msg = messages[rand * rand * messages.length]
+  ea = $data[msg.conversation_id]
 else
   if Options.include? :recent
     $data = $data.sort_by(&:create_time).reverse
