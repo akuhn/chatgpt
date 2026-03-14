@@ -16,7 +16,7 @@ end
 
 if Options.include? :uniform
   ea = $data[rand * $data.size]
-elsif Options.include? :message
+elsif Options.include? :messages
   messages = $data.flat_map(&:messages)
   messages = messages.sort_by(&:create_time)
   messages = messages.reverse if Options.include? :recent
